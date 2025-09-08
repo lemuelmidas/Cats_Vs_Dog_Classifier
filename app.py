@@ -1,21 +1,3 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from tensorflow.keras.models import Sequential
-import tensorflow as tf
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dense, Flatten
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-import os
-
-
-#ataset_url = "https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip"
-#taset_url= 'cats_and_dogs_filtered.zip'
-#ath_to_zip = tf.keras.utils.get_file('cats_and_dogs_filtered.zip',origin=dataset_url, extract=True)
-
-#ase_dir= os.path.join(os.path.dirname(path_to_zip), 'cats_and_dogs_new_filtered')
-#ase_dir = r"C:\Users\DELL\Documents\ML\Cats_Vs_Dog_Classifier\cats_and_dogs_filtered"
-
-import zipfile
-import os
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
@@ -23,6 +5,8 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import zipfile
 import os
 import numpy as np
+import matplotlib.pyplot as plt
+import random
 from tensorflow.keras.preprocessing import image
 
 # -----------------------------
@@ -80,15 +64,13 @@ model.compile(optimizer='adam',
               loss='binary_crossentropy',
               metrics=['accuracy'])
 
-model.summary()
-
 # -----------------------------
 # 4. Train Model
 # -----------------------------
 history = model.fit(
     train_generator,
     validation_data=val_generator,
-    epochs=5  # you can increase to 10+
+    epochs=5
 )
 
 # -----------------------------
@@ -98,13 +80,27 @@ loss, acc = model.evaluate(val_generator)
 print(f"\n✅ Validation Accuracy: {acc*100:.2f}%")
 
 # -----------------------------
-# 6. Prediction Example
+# 6. Predict Random Image from Validation
 # -----------------------------
-sample_path = os.path.join(val_dir, "cats", os.listdir(os.path.join(val_dir, "cats"))[0])
+# Pick either 'cats' or 'dogs' folder
+category = random.choice(["cats", "dogs"])
+folder = os.path.join(val_dir, category)
+
+# Pick a random image from that folder
+random_image = random.choice(os.listdir(folder))
+sample_path = os.path.join(folder, random_image)
+
+# Load and preprocess the image
 img = image.load_img(sample_path, target_size=(128, 128))
 img_array = image.img_to_array(img) / 255.0
 img_array = np.expand_dims(img_array, axis=0)
 
+# Model prediction
 prediction = model.predict(img_array)
-print("\nPrediction on sample image:")
-print("Dog 🐶" if prediction[0][0] > 0.5 else "Cat 🐱") 
+pred_label = "Dog 🐶" if prediction[0][0] > 0.5 else "Cat 🐱"
+
+# Show the image with predicted label
+plt.imshow(plt.imread(sample_path))
+plt.title(f"Prediction: {pred_label}\nActual: {category.capitalize()}")
+plt.axis("off")
+plt.show()
